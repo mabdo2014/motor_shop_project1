@@ -1,86 +1,154 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ lang }}">
 <head>
-    <meta charset="UTF-8">
-    <title>Motor Shop</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
-        }
-        header {
-            background-color: #007acc;
-            color: white;
-            padding: 20px 0;
-            text-align: center;
-        }
-        main {
-            padding: 20px;
-            max-width: 900px;
-            margin: auto;
-        }
-        h1, h2 {
-            text-align: center;
-        }
-        .products {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-top: 30px;
-        }
-        .product {
-            background-color: white;
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-        }
-        .product h3 {
-            margin-top: 0;
-        }
-        footer {
-            text-align: center;
-            margin-top: 40px;
-            padding: 15px;
-            background-color: #007acc;
-            color: white;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ t('shop_name') }}</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+body { padding: 20px; }
+.table th, .table td { vertical-align: middle; text-align: center; }
+.language-btn { margin-right: 10px; }
+</style>
 </head>
-<body>
-    <header>
-        <h1>Motor Shop Project</h1>
-        <p>Manage your products efficiently</p>
-    </header>
+<body dir="{{ 'rtl' if lang=='ar' else 'ltr' }}">
 
-    <main>
-        <h2>Products List</h2>
-        <div class="products">
-            <div class="product">
-                <h3>Product 1</h3>
-                <p>Category: Parts</p>
-                <p>Price: $100</p>
-                <p>Quantity: 50</p>
-            </div>
-            <div class="product">
-                <h3>Product 2</h3>
-                <p>Category: Equipment</p>
-                <p>Price: $250</p>
-                <p>Quantity: 20</p>
-            </div>
-            <div class="product">
-                <h3>Product 3</h3>
-                <p>Category: Maintenance</p>
-                <p>Price: $50</p>
-                <p>Quantity: 100</p>
-            </div>
-            <!-- يمكنك إضافة المزيد من المنتجات هنا -->
-        </div>
-    </main>
+<div class="container">
 
-    <footer>
-        &copy; 2025 Motor Shop Project
-    </footer>
+<!-- رأس الصفحة مع أزرار اللغة -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+<h1>{{ t('shop_name') }}</h1>
+<div>
+<!-- أزرار اللغة تعمل داخلياً على التطبيق -->
+<a href="/?lang=ar" class="btn btn-outline-primary language-btn">🇸🇦 Arabic</a>
+<a href="/?lang=en" class="btn btn-outline-secondary language-btn">🇺🇸 English</a>
+</div>
+</div>
+
+<!-- المنتجات -->
+<div class="card mb-4">
+<div class="card-header"><h2>{{ t('products_list') }}</h2></div>
+<div class="card-body p-0">
+<table class="table table-striped mb-0">
+<thead class="table-dark">
+<tr>
+<th>{{ t('product_name') }}</th>
+<th>{{ t('category') }}</th>
+<th>{{ t('price') }}</th>
+<th>{{ t('available') }}</th>
+<th>{{ t('sell') }}</th>
+</tr>
+</thead>
+<tbody>
+{% for p in products %}
+<tr>
+<td>{{ p['name'] }}</td>
+<td>{{ p['category'] }}</td>
+<td>{{ p['price'] }}</td>
+<td>{{ p['quantity'] }}</td>
+<td>
+{% if p['quantity']>0 %}
+<form method="post" action="/sell_product/{{ p['id'] }}" class="d-flex justify-content-center">
+<input type="number" name="sold_quantity" min="1" max="{{ p['quantity'] }}" required class="form-control form-control-sm me-2" style="width:80px;">
+<button type="submit" class="btn btn-success btn-sm">{{ t('sell_button') }}</button>
+</form>
+{% else %}
+<span class="text-danger">{{ t('out_of_stock') }}</span>
+{% endif %}
+</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+</div>
+
+<!-- إضافة منتج -->
+<div class="card mb-4">
+<div class="card-header"><h2>{{ t('add_product') }}</h2></div>
+<div class="card-body">
+<form method="post" action="/add_product" class="row g-3">
+<div class="col-md-3"><input type="text" name="name" placeholder="{{ t('product_name') }}" class="form-control" required></div>
+<div class="col-md-3"><input type="text" name="category" placeholder="{{ t('category') }}" class="form-control" required></div>
+<div class="col-md-2"><input type="number" step="0.01" name="price" placeholder="{{ t('price') }}" class="form-control" required></div>
+<div class="col-md-2"><input type="number" name="quantity" placeholder="{{ t('available') }}" class="form-control" required></div>
+<div class="col-md-2"><button type="submit" class="btn btn-primary w-100">{{ t('add_button') }}</button></div>
+</form>
+</div>
+</div>
+
+<!-- تقرير المبيعات -->
+<div class="card mb-4">
+<div class="card-header d-flex justify-content-between align-items-center">
+<h2>{{ t('sales_report') }}</h2>
+<div>
+<a href="/export/excel" class="btn btn-outline-success btn-sm">{{ t('export_excel') }}</a>
+<a href="/export/pdf" class="btn btn-outline-danger btn-sm">{{ t('export_pdf') }}</a>
+</div>
+</div>
+<div class="card-body p-0">
+<p class="m-3">{{ t('total_sales') }}: <strong>{{ total_sales }}</strong></p>
+<table class="table table-striped mb-0">
+<thead class="table-dark">
+<tr>
+<th>{{ t('product_name') }}</th>
+<th>{{ t('quantity_sold') }}</th>
+<th>{{ t('price') }}</th>
+<th>{{ t('total') }}</th>
+<th>{{ t('date') }}</th>
+</tr>
+</thead>
+<tbody>
+{% for s in sales %}
+<tr>
+<td>{{ s['name'] }}</td>
+<td>{{ s['quantity'] }}</td>
+<td>{{ s['price'] }}</td>
+<td>{{ s['total'] }}</td>
+<td>{{ s['date'] }}</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+</div>
+
+<!-- مخطط المبيعات اليومية -->
+<div class="card mb-4">
+<div class="card-header"><h2>📊 Sales Chart</h2></div>
+<div class="card-body">
+<canvas id="salesChart" height="100"></canvas>
+</div>
+</div>
+
+</div>
+
+<script>
+fetch('/sales_chart_data')
+.then(response => response.json())
+.then(data => {
+const ctx = document.getElementById('salesChart').getContext('2d');
+new Chart(ctx, {
+type: 'bar',
+data: {
+labels: data.labels,
+datasets: [{
+label: 'Sales',
+data: data.totals,
+backgroundColor: 'rgba(54, 162, 235, 0.6)',
+borderColor: 'rgba(54, 162, 235, 1)',
+borderWidth: 1
+}]
+},
+options: {
+responsive: true,
+scales: { y: { beginAtZero: true } }
+}
+});
+});
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
